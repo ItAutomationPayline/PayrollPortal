@@ -1,0 +1,13 @@
+.login-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+.security-badge {
+  background: rgba(4, 22, 39, 0.03);
+  border: 1px solid #c4c6cd;
+}
+.brand-visual {
+  background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBL3YOoLEoup-vjIeoDYe8jiB4zP_bNb_vs4hmuzjDSvb-IPV2unMplQzVTVqL8aD2nRkebgSnHb6TejZs8vGGosou7T3e-jS3SPBIAyrljt9yumbyV5uOrYJY1nk03aKF9h0JHuicjlly1zl9ewLrAVPD1JAZdFXBjbNcPDrlG4L1WiKYcyMKvqHPyXlFmfTAjIEQVY3U2_8G3Zn3pj9RPUweSxHAz-h82qeFyRvKw3TbULxPQ8qgzOtDJz4DnZ4wjNUf7-sSjyg7F');
+  background-size: cover;
+  background-position: center;
+}

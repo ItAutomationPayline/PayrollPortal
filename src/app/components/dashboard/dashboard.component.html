@@ -1,0 +1,170 @@
+<div class="min-h-screen flex flex-col">
+  <app-header active="dashboard"></app-header>
+  <app-sidebar active="dashboard" [showCycle]="true"></app-sidebar>
+
+  <main class="md:ml-[280px] pt-16 p-lg md:p-xl flex-grow overflow-y-auto">
+    <div class="max-w-[1160px] mx-auto space-y-lg">
+      <br>
+      <!-- Header -->
+      <div class="flex flex-col gap-xs">
+        <h1 class="font-display-lg text-display-lg text-primary">Administrative Dashboard</h1>
+        <p class="font-body-lg text-body-lg text-on-surface-variant">Real-time status overview for the current payroll processing window.</p>
+      </div>
+      
+      <!-- Summary bento -->
+      <div class="grid grid-cols-12 gap-lg">
+        <div class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-outline-variant p-lg rounded-xl flex items-center justify-between hover:bg-surface-container-low transition-colors">
+          <div class="flex flex-col">
+            <span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Processing</span>
+            <span class="font-display-lg text-display-lg text-primary">{{ summary.processing }}</span>
+          </div>
+          <div class="w-12 h-12 rounded-full bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">sync</span>
+          </div>
+        </div>
+        <div class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-outline-variant p-lg rounded-xl flex items-center justify-between hover:bg-surface-container-low transition-colors">
+          <div class="flex flex-col">
+            <span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Ready for Download</span>
+            <span class="font-display-lg text-display-lg text-secondary">{{ summary.ready }}</span>
+          </div>
+          <div class="w-12 h-12 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">download_done</span>
+          </div>
+        </div>
+        <div class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-outline-variant p-lg rounded-xl flex items-center justify-between hover:bg-surface-container-low transition-colors">
+          <div class="flex flex-col">
+            <span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Errors Detected</span>
+            <span class="font-display-lg text-display-lg text-error">{{ summary.errors }}</span>
+          </div>
+          <div class="w-12 h-12 rounded-full bg-error-container text-on-error-container flex items-center justify-center">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">error</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Calendar -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-col">
+        <div class="px-lg py-md border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+          <h2 class="font-headline-sm text-headline-sm text-primary">Payroll Calendar - October 2024</h2>
+          <div class="flex items-center gap-sm">
+            <span class="w-3 h-3 bg-secondary-container border border-secondary rounded-sm"></span>
+            <span class="font-label-md text-label-md text-on-surface-variant">Processing Window</span>
+          </div>
+        </div>
+        <div class="grid grid-cols-12 divide-x divide-outline-variant">
+          <div class="col-span-12 lg:col-span-8 p-lg">
+            <div class="grid grid-cols-7 gap-xs text-center mb-sm">
+              <div *ngFor="let d of weekdays" class="font-label-md text-label-md text-outline uppercase">{{ d }}</div>
+            </div>
+            <div class="grid grid-cols-7 gap-xs">
+              <div *ngFor="let b of blanks" class="h-12"></div>
+              <div *ngFor="let day of days"
+                   class="h-12 flex items-center justify-center font-mono-data"
+                   [ngClass]="isWindow(day)
+                      ? 'bg-secondary-container text-on-secondary-container border border-secondary rounded font-bold'
+                      : 'text-on-surface-variant'">
+                {{ day }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Milestones -->
+          <div class="col-span-12 lg:col-span-4 bg-surface-container-low p-lg flex flex-col gap-sm">
+            <h3 class="font-label-md text-label-md font-bold text-primary uppercase tracking-wider">Process Milestones</h3>
+            <ol class="flex flex-col gap-xs">
+              <li *ngFor="let m of milestones; let i = index"
+                  class="flex items-center gap-sm font-body-sm text-body-sm text-on-surface-variant">
+                <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] text-on-primary"
+                      [ngClass]="i === milestones.length - 1 ? 'bg-secondary text-on-secondary' : 'bg-primary'">{{ i + 1 }}</span>
+                {{ m }}
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick upload + recent activity -->
+      <div class="grid grid-cols-12 gap-lg">
+        <div class="col-span-12 lg:col-span-5 bg-surface-container-lowest border border-outline-variant p-lg rounded-xl flex flex-col gap-md">
+          <div class="flex items-center justify-between">
+            <h2 class="font-headline-sm text-headline-sm text-primary">Quick Upload</h2>
+            <span class="material-symbols-outlined text-outline">help</span>
+          </div>
+          <label class="flex-grow border-2 border-dashed border-outline-variant rounded-lg flex flex-col items-center justify-center py-xl bg-surface-bright hover:bg-surface-container transition-all cursor-pointer group">
+            <span class="material-symbols-outlined text-[48px] text-outline group-hover:text-primary transition-colors mb-sm">cloud_upload</span>
+            <p class="font-body-md text-body-md text-on-surface-variant">Drag files here or <span class="text-primary font-bold">browse</span></p>
+            <p class="font-label-md text-label-md text-outline mt-xs">CSV, XML, or XLS (Max 50MB)</p>
+            <input type="file" class="hidden" (change)="onFileSelected($event)" />
+          </label>
+          <div class="flex flex-col gap-sm">
+            <div class="flex items-center justify-between font-label-md text-label-md text-on-surface-variant">
+              <span>System Compatibility Check</span>
+              <span class="text-secondary font-bold">100% Secure</span>
+            </div>
+            <button class="bg-primary text-on-primary py-sm rounded font-label-md text-label-md uppercase tracking-widest hover:opacity-90 transition-opacity">
+              Initiate Processing
+            </button>
+          </div>
+        </div>
+
+        <div class="col-span-12 lg:col-span-7 bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-col">
+          <div class="px-lg py-md border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+            <h2 class="font-headline-sm text-headline-sm text-primary">Recent Activity</h2>
+            <button class="text-primary font-label-md text-label-md hover:underline" routerLink="/status">View History</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-surface-container-lowest border-b border-outline-variant">
+                  <th class="px-lg py-sm font-label-md text-label-md text-on-surface-variant">FILE NAME</th>
+                  <th class="px-lg py-sm font-label-md text-label-md text-on-surface-variant">TIMESTAMP</th>
+                  <th class="px-lg py-sm font-label-md text-label-md text-on-surface-variant">STATUS</th>
+                  <th class="px-lg py-sm font-label-md text-label-md text-on-surface-variant text-right">ACTION</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-outline-variant">
+                <tr *ngFor="let row of activity" class="hover:bg-surface-container-low transition-colors">
+                  <td class="px-lg py-md">
+                    <div class="flex flex-col">
+                      <span class="font-body-md text-body-md font-bold text-primary">{{ row.file }}</span>
+                      <span class="font-label-md text-label-md text-outline">ID: {{ row.id }}</span>
+                    </div>
+                  </td>
+                  <td class="px-lg py-md font-mono-data text-mono-data text-on-surface-variant">{{ row.timestamp }}</td>
+                  <td class="px-lg py-md">
+                    <span *ngIf="row.status === 'Ready'" class="px-sm py-xs bg-secondary-container text-on-secondary-container rounded-full font-label-md text-label-md inline-flex items-center gap-xs">
+                      <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">check_circle</span> Ready
+                    </span>
+                    <span *ngIf="row.status === 'Processing'" class="px-sm py-xs bg-primary-container text-on-primary-container rounded-full font-label-md text-label-md inline-flex items-center gap-xs">
+                      <span class="material-symbols-outlined text-[16px] animate-spin">refresh</span> Processing
+                    </span>
+                    <span *ngIf="row.status === 'Review Required'" class="px-sm py-xs bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-full font-label-md text-label-md inline-flex items-center gap-xs">
+                      <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">error</span> Review Required
+                    </span>
+                  </td>
+                  <td class="px-lg py-md text-right">
+                    <button class="material-symbols-outlined p-xs rounded transition-all"
+                            [ngClass]="row.status === 'Processing' ? 'text-outline cursor-not-allowed' : 'text-primary hover:bg-surface-container-high'">
+                      {{ row.action }}
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visual asset -->
+      <div class="relative w-full h-[300px] rounded-xl overflow-hidden border border-outline-variant">
+        <div class="asset-visual w-full h-full"></div>
+        <div class="absolute inset-0 bg-gradient-to-r from-primary/60 to-transparent flex flex-col justify-center px-xl gap-sm">
+          <h3 class="font-display-lg text-display-lg text-on-primary">Security First Infrastructure</h3>
+          <p class="font-body-lg text-body-lg text-surface-bright max-w-md">Your payroll data is protected by AES-256 encryption and multi-tier biometric authentication protocols.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <app-footer [offsetSidebar]="true"></app-footer>
+</div>

@@ -1,0 +1,131 @@
+<div class="min-h-screen flex flex-col">
+  <app-header active="file-upload"></app-header>
+  <app-sidebar active="file-upload"></app-sidebar>
+
+  <main class="md:ml-[280px] pt-16 p-lg flex-grow">
+    <div class="max-w-5xl mx-auto space-y-lg">
+
+      <!-- Page header -->
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-md border-b border-outline-variant pb-md">
+        <div>
+          <p class="text-on-surface-variant font-label-md text-label-md">PAYROLL ADMINISTRATION</p>
+          <h2 class="font-display-lg text-display-lg text-on-background">File Upload &amp; Audit</h2>
+        </div>
+        <div class="flex items-center gap-sm px-md py-xs bg-surface-container text-on-surface-variant rounded-lg border border-outline-variant">
+          <span class="material-symbols-outlined text-[18px]">info</span>
+          <span class="font-body-sm text-body-sm">Last sync: Today, 09:42 AM</span>
+        </div>
+      </div>
+
+      <!-- Bento: upload + guidelines -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-lg">
+        <section class="lg:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-col">
+          <div class="p-lg border-b border-outline-variant flex justify-between items-center bg-surface-bright">
+            <h3 class="font-headline-sm text-headline-sm">Upload Payroll File</h3>
+            <span class="text-on-surface-variant font-body-sm text-body-sm">Ready for processing</span>
+          </div>
+
+          <label class="file-drop-zone m-lg flex-1 border-2 border-dashed border-outline-variant rounded-xl flex flex-col items-center justify-center py-xl px-lg transition-all cursor-pointer hover:bg-surface-container-low hover:border-primary-container"
+                 [class.dragging]="isDragging"
+                 (dragover)="onDragOver($event)" (dragleave)="onDragLeave()" (drop)="onDrop($event)">
+            <input type="file" accept=".csv,.xlsx" class="hidden" (change)="onFileSelected($event)" />
+            <div class="bg-primary-fixed h-16 w-16 rounded-full flex items-center justify-center mb-md">
+              <span class="material-symbols-outlined text-primary text-[32px]">cloud_upload</span>
+            </div>
+            <h4 class="font-headline-sm text-headline-sm text-on-background mb-xs">Select or Drop Payroll File</h4>
+            <p class="text-on-surface-variant font-body-md text-body-md text-center max-w-sm">
+              Drag and drop your quarterly or monthly payroll export here. Max file size: 50MB.
+            </p>
+            <span class="mt-lg bg-primary text-on-primary px-lg py-sm rounded font-label-md text-label-md hover:opacity-90 transition-opacity">
+              Browse Local Files
+            </span>
+          </label>
+
+          <div *ngIf="showProgress" class="px-lg pb-lg">
+            <div class="bg-surface-container p-md rounded-lg border border-outline-variant">
+              <div class="flex justify-between items-center mb-sm">
+                <div class="flex items-center gap-sm">
+                  <span class="material-symbols-outlined text-primary">description</span>
+                  <span class="font-body-md text-body-md font-bold">{{ fileName }}</span>
+                </div>
+                <span class="font-mono-data text-mono-data">{{ progress }}%</span>
+              </div>
+              <div class="w-full bg-outline-variant h-2 rounded-full overflow-hidden">
+                <div class="bg-primary h-full transition-all duration-300" [style.width.%]="progress"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="lg:col-span-4 space-y-lg">
+          <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg">
+            <h3 class="font-headline-sm text-headline-sm mb-md flex items-center gap-sm">
+              <span class="material-symbols-outlined text-primary">verified_user</span> Protocol
+            </h3>
+            <ul class="space-y-md">
+              <li *ngFor="let p of protocol" class="flex gap-sm">
+                <span class="material-symbols-outlined text-secondary text-[20px]">check_circle</span>
+                <span class="font-body-sm text-body-sm">{{ p }}</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="bg-primary-container text-on-primary-container border border-primary-container rounded-xl p-lg relative overflow-hidden">
+            <div class="relative z-10">
+              <h3 class="font-label-md text-label-md uppercase tracking-wider mb-sm opacity-80">Security Status</h3>
+              <p class="font-headline-md text-headline-md mb-md">Environment Secure</p>
+              <button class="bg-on-primary-container text-primary-container px-md py-xs rounded font-label-md text-label-md hover:bg-surface-container-lowest transition-colors">
+                View Audit Logs
+              </button>
+            </div>
+            <span class="material-symbols-outlined absolute -bottom-4 -right-4 text-[120px] opacity-10 rotate-12">lock</span>
+          </div>
+        </aside>
+      </div>
+
+      <!-- Format validation results -->
+      <section class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+        <div class="p-lg border-b border-outline-variant flex justify-between items-center">
+          <div class="flex items-center gap-sm">
+            <h3 class="font-headline-sm text-headline-sm">Format Validation Audit</h3>
+            <div class="px-sm py-[2px] bg-error-container text-on-error-container rounded font-label-md text-label-md">
+              {{ validationRows.length }} ERRORS DETECTED
+            </div>
+          </div>
+          <button (click)="retry()"
+                  class="flex items-center gap-sm border border-primary text-primary px-md py-sm rounded font-label-md text-label-md hover:bg-surface-container-low transition-all">
+            <span class="material-symbols-outlined text-[18px]">refresh</span> Retry Upload
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead class="bg-surface-container-low border-b border-outline-variant">
+              <tr>
+                <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Location</th>
+                <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Column</th>
+                <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Detail</th>
+                <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-right">Severity</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-outline-variant">
+              <tr *ngFor="let v of validationRows" class="hover:bg-surface-container-low transition-colors">
+                <td class="p-md font-mono-data text-mono-data text-on-surface">{{ v.row }}</td>
+                <td class="p-md font-body-md text-body-md font-bold text-primary">{{ v.column }}</td>
+                <td class="p-md font-body-sm text-body-sm text-on-surface-variant">{{ v.message }}</td>
+                <td class="p-md text-right">
+                  <span class="px-sm py-xs rounded-full font-label-md text-[10px] uppercase inline-flex items-center gap-xs"
+                        [ngClass]="v.severity === 'error' ? 'bg-error text-on-error' : 'bg-tertiary-fixed text-on-tertiary-fixed-variant'">
+                    <span class="material-symbols-outlined text-[14px]">{{ v.severity === 'error' ? 'error' : 'warning' }}</span>
+                    {{ v.severity }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <app-footer [offsetSidebar]="true"></app-footer>
+</div>

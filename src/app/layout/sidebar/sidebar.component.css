@@ -1,0 +1,7 @@
+.payroll-cycle-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #1a2b3c;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}

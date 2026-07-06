@@ -1,0 +1,12 @@
+.payroll-cycle-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #1a2b3c;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+.asset-visual {
+  background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBvkTVxs0Yc1_8fuARxrO47et6clmLN6-zS1tdgEt4Qy4hN1LM657IdvykHDgsIkq34WxGGJAwNzcGaIh_MbR0jZ4ToRjrFy5l74yapcY7517s8lSiVDy8dWvE2Cz2f4HU5IYdq73fO09fzWEKnyD6ldamLuVNQXIrJmoR8RIVPLDdcUYGOFlF_lu5bfrdrmDnezxoWjtSlJpa-pLkHDYcpeIEzYtXI6MydvUslkNN8N5JzSEjL1DZoUXwwJF0eLL6BOZV-TaZV8F1l');
+  background-size: cover;
+  background-position: center;
+}
