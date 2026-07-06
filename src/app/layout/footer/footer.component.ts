@@ -9,4 +9,5 @@ import { Component, Input } from '@angular/core';
 export class FooterComponent {
   /** When true the footer is offset to clear the fixed 280px sidebar */
   @Input() offsetSidebar = false;
+  currentYear = new Date().getFullYear();
 }
