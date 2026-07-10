@@ -6,14 +6,15 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { FileUploadComponent } from './components/file-upload/file-upload.component';
 import { StatusDownloadsComponent } from './components/status-downloads/status-downloads.component';
 import { UserManagementComponent } from './components/user-management/user-management.component';
+import { authGuard } from './core/auth.guard';
 
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
-  { path: 'dashboard', component: DashboardComponent },
-  { path: 'file-upload', component: FileUploadComponent },
-  { path: 'status', component: StatusDownloadsComponent },
-  { path: 'users', component: UserManagementComponent },
+  { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
+  { path: 'file-upload', component: FileUploadComponent, canActivate: [authGuard] },
+  { path: 'status', component: StatusDownloadsComponent, canActivate: [authGuard] },
+  { path: 'users', component: UserManagementComponent, canActivate: [authGuard] },
   { path: '**', redirectTo: 'login' }
 ];
 

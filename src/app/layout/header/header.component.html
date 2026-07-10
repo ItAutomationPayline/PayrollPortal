@@ -16,13 +16,22 @@
         <a class="px-sm py-xs font-label-md text-label-md transition-colors cursor-pointer"
            [ngClass]="active === 'status' ? 'text-primary font-bold border-b-2 border-primary' : 'text-on-surface-variant hover:bg-surface-container-low'"
            routerLink="/status">History</a>
-        <a class="px-sm py-xs font-label-md text-label-md transition-colors cursor-pointer"
+        <a *ngIf="isPaylineSide" class="px-sm py-xs font-label-md text-label-md transition-colors cursor-pointer"
            [ngClass]="active === 'users' ? 'text-primary font-bold border-b-2 border-primary' : 'text-on-surface-variant hover:bg-surface-container-low'"
            routerLink="/users">User Management</a>
       </nav>
 
-      <div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container text-xs font-bold border border-outline-variant">
-        {{ initials }}
+      <div class="flex items-center gap-sm">
+        <div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container text-xs font-bold border border-outline-variant"
+             [title]="fullName">
+          {{ initials }}
+        </div>
+        <button (click)="logout()"
+                class="flex items-center gap-xs px-sm py-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-low transition-colors cursor-pointer"
+                title="Log out">
+          <span class="material-symbols-outlined !text-[18px]">logout</span>
+          <span class="hidden md:inline">Logout</span>
+        </button>
       </div>
     </div>
   </div>

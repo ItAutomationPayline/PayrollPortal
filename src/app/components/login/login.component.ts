@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { AuthService } from '../../core/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -13,19 +14,33 @@ export class LoginComponent {
   rememberDevice = false;
   showPassword = false;
   authenticating = false;
+  errorMessage = '';
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private auth: AuthService) {}
 
   togglePassword(): void {
     this.showPassword = !this.showPassword;
   }
 
   onSubmit(): void {
-    // Simulated authentication, then route to the dashboard.
+    this.errorMessage = '';
+    if (!this.email || !this.password) {
+      this.errorMessage = 'Please enter your email and password.';
+      return;
+    }
+
     this.authenticating = true;
-    setTimeout(() => {
-      this.authenticating = false;
-      this.router.navigate(['/dashboard']);
-    }, 1200);
+    this.auth.login(this.email, this.password).subscribe({
+      next: () => {
+        this.authenticating = false;
+        // Both sides land on the dashboard; the UI adapts to user.side.
+        this.router.navigate(['/dashboard']);
+      },
+      error: (err) => {
+        this.authenticating = false;
+        this.errorMessage =
+          err?.error?.error || 'Login failed. Please check your credentials and try again.';
+      }
+    });
   }
 }
