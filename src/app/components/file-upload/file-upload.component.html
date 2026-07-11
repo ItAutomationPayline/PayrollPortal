@@ -9,39 +9,64 @@
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-md border-b border-outline-variant pb-md">
         <div>
           <br>
-          <p class="text-on-surface-variant font-label-md text-label-md">PAYROLL ADMINISTRATION</p>
-          <h2 class="font-display-lg text-display-lg text-on-background">File Upload &amp; Audit</h2>
+          <p class="text-on-surface-variant font-label-md text-label-md">
+            {{ isPaylineSide ? 'PAYLINE OPERATIONS' : 'CLIENT PORTAL' }}
+          </p>
+          <h2 class="font-display-lg text-display-lg text-on-background">File Upload &amp; Download</h2>
         </div>
         <div class="flex items-center gap-sm px-md py-xs bg-surface-container text-on-surface-variant rounded-lg border border-outline-variant">
-          <span class="material-symbols-outlined text-[18px]">info</span>
-          <span class="font-body-sm text-body-sm">Last sync: Today, 09:42 AM</span>
+          <span class="material-symbols-outlined text-[18px]">verified_user</span>
+          <span class="font-body-sm text-body-sm">Stored on Payline server</span>
         </div>
       </div>
+
+      <!-- Selectors: cycle + file type -->
+      <section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg grid grid-cols-1 md:grid-cols-2 gap-lg">
+        <div>
+          <label class="block font-label-md text-label-md text-on-surface-variant mb-xs uppercase tracking-wider">Payroll Cycle</label>
+          <select [(ngModel)]="selectedCycleId" (ngModelChange)="onCycleChange()"
+                  class="w-full bg-surface-container border border-outline-variant rounded-lg p-sm font-body-md text-body-md text-on-surface">
+            <option [ngValue]="null" disabled>Select a cycle…</option>
+            <option *ngFor="let c of cycles" [ngValue]="c.id">{{ cycleLabel(c) }}</option>
+          </select>
+          <p *ngIf="!cycles.length" class="mt-xs font-body-sm text-body-sm text-on-surface-variant">
+            No cycles yet. {{ isPaylineSide ? 'Open a month from the dashboard first.' : 'Payline needs to open a month first.' }}
+          </p>
+        </div>
+        <div>
+          <label class="block font-label-md text-label-md text-on-surface-variant mb-xs uppercase tracking-wider">File Type</label>
+          <select [(ngModel)]="selectedKind"
+                  class="w-full bg-surface-container border border-outline-variant rounded-lg p-sm font-body-md text-body-md text-on-surface">
+            <option *ngFor="let k of kindOptions" [ngValue]="k.value">{{ k.label }}</option>
+          </select>
+        </div>
+      </section>
 
       <!-- Bento: upload + guidelines -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-lg">
         <section class="lg:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-col">
           <div class="p-lg border-b border-outline-variant flex justify-between items-center bg-surface-bright">
-            <h3 class="font-headline-sm text-headline-sm">Upload Payroll File</h3>
-            <span class="text-on-surface-variant font-body-sm text-body-sm">Ready for processing</span>
+            <h3 class="font-headline-sm text-headline-sm">Upload File</h3>
+            <span class="text-on-surface-variant font-body-sm text-body-sm">Attaches to selected cycle</span>
           </div>
 
           <label class="file-drop-zone m-lg flex-1 border-2 border-dashed border-outline-variant rounded-xl flex flex-col items-center justify-center py-xl px-lg transition-all cursor-pointer hover:bg-surface-container-low hover:border-primary-container"
                  [class.dragging]="isDragging"
                  (dragover)="onDragOver($event)" (dragleave)="onDragLeave()" (drop)="onDrop($event)">
-            <input type="file" accept=".csv,.xlsx" class="hidden" (change)="onFileSelected($event)" />
+            <input type="file" accept=".csv,.xlsx,.xml,.pdf" class="hidden" (change)="onFileSelected($event)" [disabled]="uploading" />
             <div class="bg-primary-fixed h-16 w-16 rounded-full flex items-center justify-center mb-md">
               <span class="material-symbols-outlined text-primary text-[32px]">cloud_upload</span>
             </div>
-            <h4 class="font-headline-sm text-headline-sm text-on-background mb-xs">Select or Drop Payroll File</h4>
+            <h4 class="font-headline-sm text-headline-sm text-on-background mb-xs">Select or Drop File</h4>
             <p class="text-on-surface-variant font-body-md text-body-md text-center max-w-sm">
-              Drag and drop your quarterly or monthly payroll export here. Max file size: 50MB.
+              Drag and drop, or browse. Max file size: 25MB.
             </p>
             <span class="mt-lg bg-primary text-on-primary px-lg py-sm rounded font-label-md text-label-md hover:opacity-90 transition-opacity">
               Browse Local Files
             </span>
           </label>
 
+          <!-- Progress -->
           <div *ngIf="showProgress" class="px-lg pb-lg">
             <div class="bg-surface-container p-md rounded-lg border border-outline-variant">
               <div class="flex justify-between items-center mb-sm">
@@ -55,6 +80,14 @@
                 <div class="bg-primary h-full transition-all duration-300" [style.width.%]="progress"></div>
               </div>
             </div>
+          </div>
+
+          <!-- Messages -->
+          <div *ngIf="errorMessage" class="mx-lg mb-lg p-sm rounded-lg bg-error-container text-on-error-container font-body-sm text-body-sm flex items-center gap-sm">
+            <span class="material-symbols-outlined !text-[18px]">error</span>{{ errorMessage }}
+          </div>
+          <div *ngIf="successMessage" class="mx-lg mb-lg p-sm rounded-lg bg-tertiary-fixed text-on-tertiary-fixed-variant font-body-sm text-body-sm flex items-center gap-sm">
+            <span class="material-symbols-outlined !text-[18px]">check_circle</span>{{ successMessage }}
           </div>
         </section>
 
@@ -70,55 +103,46 @@
               </li>
             </ul>
           </div>
-
-          <div class="bg-primary-container text-on-primary-container border border-primary-container rounded-xl p-lg relative overflow-hidden">
-            <div class="relative z-10">
-              <h3 class="font-label-md text-label-md uppercase tracking-wider mb-sm opacity-80">Security Status</h3>
-              <p class="font-headline-md text-headline-md mb-md">Environment Secure</p>
-              <button class="bg-on-primary-container text-primary-container px-md py-xs rounded font-label-md text-label-md hover:bg-surface-container-lowest transition-colors">
-                View Audit Logs
-              </button>
-            </div>
-            <span class="material-symbols-outlined absolute -bottom-4 -right-4 text-[120px] opacity-10 rotate-12">lock</span>
-          </div>
         </aside>
       </div>
 
-      <!-- Format validation results -->
+      <!-- Files on this cycle -->
       <section class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
         <div class="p-lg border-b border-outline-variant flex justify-between items-center">
-          <div class="flex items-center gap-sm">
-            <h3 class="font-headline-sm text-headline-sm">Format Validation Audit</h3>
-            <div class="px-sm py-[2px] bg-error-container text-on-error-container rounded font-label-md text-label-md">
-              {{ validationRows.length }} ERRORS DETECTED
-            </div>
-          </div>
-          <button (click)="retry()"
-                  class="flex items-center gap-sm border border-primary text-primary px-md py-sm rounded font-label-md text-label-md hover:bg-surface-container-low transition-all">
-            <span class="material-symbols-outlined text-[18px]">refresh</span> Retry Upload
-          </button>
+          <h3 class="font-headline-sm text-headline-sm">Files on this cycle</h3>
+          <span class="text-on-surface-variant font-body-sm text-body-sm">{{ recentUploads.length }} file(s)</span>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead class="bg-surface-container-low border-b border-outline-variant">
               <tr>
-                <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Location</th>
-                <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Column</th>
-                <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Detail</th>
-                <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-right">Severity</th>
+                <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">File</th>
+                <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Type</th>
+                <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Size</th>
+                <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Uploaded By</th>
+                <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">When</th>
+                <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-right">Action</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-outline-variant">
-              <tr *ngFor="let v of validationRows" class="hover:bg-surface-container-low transition-colors">
-                <td class="p-md font-mono-data text-mono-data text-on-surface">{{ v.row }}</td>
-                <td class="p-md font-body-md text-body-md font-bold text-primary">{{ v.column }}</td>
-                <td class="p-md font-body-sm text-body-sm text-on-surface-variant">{{ v.message }}</td>
+              <tr *ngFor="let f of recentUploads" class="hover:bg-surface-container-low transition-colors">
+                <td class="p-md font-body-md text-body-md font-bold text-on-surface flex items-center gap-sm">
+                  <span class="material-symbols-outlined text-primary text-[20px]">description</span>{{ f.originalName }}
+                </td>
+                <td class="p-md font-body-sm text-body-sm text-on-surface-variant">{{ f.kind }}</td>
+                <td class="p-md font-mono-data text-mono-data">{{ formatSize(f.sizeBytes) }}</td>
+                <td class="p-md font-body-sm text-body-sm text-on-surface-variant">{{ f.uploadedBy }}</td>
+                <td class="p-md font-body-sm text-body-sm text-on-surface-variant">{{ f.uploadedAt }}</td>
                 <td class="p-md text-right">
-                  <span class="px-sm py-xs rounded-full font-label-md text-[10px] uppercase inline-flex items-center gap-xs"
-                        [ngClass]="v.severity === 'error' ? 'bg-error text-on-error' : 'bg-tertiary-fixed text-on-tertiary-fixed-variant'">
-                    <span class="material-symbols-outlined text-[14px]">{{ v.severity === 'error' ? 'error' : 'warning' }}</span>
-                    {{ v.severity }}
-                  </span>
+                  <button (click)="download(f)"
+                          class="inline-flex items-center gap-xs border border-primary text-primary px-md py-xs rounded font-label-md text-label-md hover:bg-surface-container-low transition-all">
+                    <span class="material-symbols-outlined text-[18px]">download</span> Download
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="!recentUploads.length">
+                <td colspan="6" class="p-lg text-center font-body-sm text-body-sm text-on-surface-variant">
+                  No files on this cycle yet.
                 </td>
               </tr>
             </tbody>

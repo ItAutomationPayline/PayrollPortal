@@ -2,111 +2,89 @@
   <app-header active="status"></app-header>
   <app-sidebar active="status"></app-sidebar>
 
-  <main class="md:ml-[280px] pt-16 p-lg flex-grow bg-surface-bright">
-    <div class="max-w-[1160px] mx-auto">
-      <br>
-      <div class="mb-xl">
-        <h1 class="font-display-lg text-display-lg text-on-background mb-sm">Processing Status &amp; Downloads</h1>
-        <p class="font-body-md text-body-md text-on-surface-variant">Monitor ongoing payroll cycles and retrieve validated documentation.</p>
+  <main class="md:ml-[280px] pt-16 p-lg flex-grow">
+    <div class="max-w-6xl mx-auto space-y-lg">
+
+      <!-- Page header -->
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-md border-b border-outline-variant pb-md">
+        <div>
+          <br>
+          <p class="text-on-surface-variant font-label-md text-label-md">PROCESSING &amp; DELIVERY</p>
+          <h2 class="font-display-lg text-display-lg text-on-background">Status &amp; Downloads</h2>
+        </div>
+        <button (click)="refresh()"
+                class="flex items-center gap-sm border border-primary text-primary px-md py-sm rounded font-label-md text-label-md hover:bg-surface-container-low transition-all">
+          <span class="material-symbols-outlined text-[18px]">refresh</span> Refresh
+        </button>
       </div>
 
-      <!-- Filters -->
-      <section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md mb-lg flex flex-wrap gap-md items-end">
-        <div class="flex-1 min-w-[200px]">
-          <label class="block font-label-md text-label-md text-on-surface-variant mb-xs">Status Filter</label>
-          <select [(ngModel)]="statusFilter"
-                  class="w-full bg-surface-container-lowest border border-outline rounded-lg h-10 px-md font-body-sm text-body-sm focus:ring-primary focus:border-primary">
-            <option *ngFor="let opt of statusOptions" [value]="opt">{{ opt }}</option>
+      <!-- Filter -->
+      <section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg flex flex-col md:flex-row gap-md md:items-end">
+        <div class="flex-1">
+          <label class="block font-label-md text-label-md text-on-surface-variant mb-xs uppercase tracking-wider">Filter by file type</label>
+          <select [(ngModel)]="kindFilter"
+                  class="w-full md:w-64 bg-surface-container border border-outline-variant rounded-lg p-sm font-body-md text-body-md text-on-surface">
+            <option *ngFor="let k of kindOptions" [ngValue]="k">{{ k }}</option>
           </select>
         </div>
-        <div class="flex-1 min-w-[200px]">
-          <label class="block font-label-md text-label-md text-on-surface-variant mb-xs">Date Range</label>
-          <div class="flex gap-xs items-center">
-            <input type="date" [(ngModel)]="dateFrom" class="flex-1 bg-surface-container-lowest border border-outline rounded-lg h-10 px-md font-body-sm text-body-sm" />
-            <span class="text-on-surface-variant">to</span>
-            <input type="date" [(ngModel)]="dateTo" class="flex-1 bg-surface-container-lowest border border-outline rounded-lg h-10 px-md font-body-sm text-body-sm" />
-          </div>
+        <div class="text-on-surface-variant font-body-sm text-body-sm">
+          Showing {{ filteredFiles.length }} of {{ files.length }} file(s)
         </div>
-        <button class="h-10 px-lg bg-primary text-on-primary font-label-md text-label-md rounded-lg hover:opacity-90 transition-opacity flex items-center gap-sm">
-          <span class="material-symbols-outlined text-[18px]">filter_list</span> Apply Filters
-        </button>
       </section>
 
-      <!-- Table -->
-      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden">
+      <div *ngIf="errorMessage" class="p-sm rounded-lg bg-error-container text-on-error-container font-body-sm text-body-sm flex items-center gap-sm">
+        <span class="material-symbols-outlined !text-[18px]">error</span>{{ errorMessage }}
+      </div>
+
+      <!-- File log -->
+      <section class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+        <div class="p-lg border-b border-outline-variant">
+          <h3 class="font-headline-sm text-headline-sm">File Log</h3>
+        </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead class="bg-surface-container-low border-b border-outline-variant">
               <tr>
-                <th class="px-md py-sm font-label-md text-label-md text-on-surface-variant">FILE NAME</th>
-                <th class="px-md py-sm font-label-md text-label-md text-on-surface-variant">UPLOAD DATE</th>
-                <th class="px-md py-sm font-label-md text-label-md text-on-surface-variant">STATUS</th>
-                <th class="px-md py-sm font-label-md text-label-md text-on-surface-variant">PROGRESS</th>
-                <th class="px-md py-sm font-label-md text-label-md text-on-surface-variant text-right">ACTION</th>
+                <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">File</th>
+                <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Type</th>
+                <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Cycle</th>
+                <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Size</th>
+                <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Uploaded</th>
+                <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-right">Action</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-outline-variant">
-              <tr *ngFor="let r of filteredRows" class="hover:bg-surface-container transition-colors"
-                  [class.bg-error-container]="r.status === 'error'">
-                <td class="px-md py-md">
-                  <div class="flex items-center gap-sm" [class.text-error]="r.status === 'error'">
-                    <span class="material-symbols-outlined" [ngClass]="r.status === 'error' ? 'text-error' : 'text-primary'">{{ r.icon }}</span>
-                    <span class="font-body-md text-body-md font-bold">{{ r.file }}</span>
-                  </div>
-                </td>
-                <td class="px-md py-md font-mono-data text-mono-data">{{ r.date }}</td>
-                <td class="px-md py-md">
-                  <span class="px-sm py-1 rounded-full font-label-md text-[10px] uppercase tracking-wider inline-block"
-                        [ngSwitch]="r.status">
-                    <ng-container *ngSwitchCase="'ready'"><span class="bg-secondary-container text-on-secondary-container px-sm py-1 rounded-full">{{ r.statusLabel }}</span></ng-container>
-                    <ng-container *ngSwitchCase="'processing'"><span class="bg-tertiary-fixed text-on-tertiary-fixed px-sm py-1 rounded-full">{{ r.statusLabel }}</span></ng-container>
-                    <ng-container *ngSwitchCase="'uploaded'"><span class="bg-surface-container-highest text-on-surface-variant px-sm py-1 rounded-full">{{ r.statusLabel }}</span></ng-container>
-                    <ng-container *ngSwitchCase="'error'"><span class="bg-error text-on-error px-sm py-1 rounded-full">{{ r.statusLabel }}</span></ng-container>
+              <tr *ngFor="let f of filteredFiles" class="hover:bg-surface-container-low transition-colors">
+                <td class="p-md font-body-md text-body-md font-bold text-on-surface">
+                  <span class="flex items-center gap-sm">
+                    <span class="material-symbols-outlined text-primary text-[20px]">{{ iconFor(f.kind) }}</span>{{ f.originalName }}
                   </span>
                 </td>
-                <td class="px-md py-md">
-                  <div class="w-full bg-outline-variant h-1 rounded-full overflow-hidden">
-                    <div class="h-full"
-                         [ngClass]="{
-                           'bg-secondary': r.status === 'ready',
-                           'bg-on-tertiary-container': r.status === 'processing',
-                           'bg-outline': r.status === 'uploaded',
-                           'bg-error': r.status === 'error'
-                         }"
-                         [style.width.%]="r.progress"></div>
-                  </div>
-                  <span *ngIf="r.progressNote" class="text-[10px] font-label-md mt-1 block"
-                        [ngClass]="r.status === 'error' ? 'text-error' : 'text-on-surface-variant'">{{ r.progressNote }}</span>
-                </td>
-                <td class="px-md py-md text-right">
-                  <a *ngIf="r.status === 'ready'" class="inline-flex items-center gap-xs text-secondary hover:underline font-label-md text-label-md cursor-pointer">
+                <td class="p-md font-body-sm text-body-sm text-on-surface-variant">{{ f.kind }}</td>
+                <td class="p-md font-mono-data text-mono-data">#{{ f.cycleId }}</td>
+                <td class="p-md font-mono-data text-mono-data">{{ formatSize(f.sizeBytes) }}</td>
+                <td class="p-md font-body-sm text-body-sm text-on-surface-variant">{{ f.uploadedAt }}</td>
+                <td class="p-md text-right">
+                  <button (click)="download(f)"
+                          class="inline-flex items-center gap-xs bg-primary text-on-primary px-md py-xs rounded font-label-md text-label-md hover:opacity-90 transition-opacity">
                     <span class="material-symbols-outlined text-[18px]">download</span> Download
-                  </a>
-                  <button *ngIf="r.status === 'processing'" disabled class="opacity-30 cursor-not-allowed">
-                    <span class="material-symbols-outlined text-[18px]">download</span>
                   </button>
-                  <span *ngIf="r.status === 'uploaded'" class="material-symbols-outlined text-on-surface-variant opacity-20">hourglass_empty</span>
-                  <button *ngIf="r.status === 'error'" class="text-error hover:underline font-label-md text-label-md flex items-center gap-xs ml-auto">
-                    <span class="material-symbols-outlined text-[18px]">refresh</span> Retry
-                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="!filteredFiles.length && !loading">
+                <td colspan="6" class="p-lg text-center font-body-sm text-body-sm text-on-surface-variant">
+                  No files to show.
+                </td>
+              </tr>
+              <tr *ngIf="loading">
+                <td colspan="6" class="p-lg text-center font-body-sm text-body-sm text-on-surface-variant">
+                  Loading…
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
-
-        <!-- Pagination -->
-        <div class="px-lg py-md flex items-center justify-between border-t border-outline-variant bg-surface-container-low">
-          <span class="font-body-sm text-body-sm text-on-surface-variant">Showing {{ filteredRows.length }} of 24 processing logs</span>
-          <div class="flex gap-xs">
-            <button class="p-xs border border-outline-variant rounded hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined">chevron_left</span></button>
-            <button class="p-xs border border-outline-variant rounded bg-primary text-on-primary font-label-md text-label-md px-md">1</button>
-            <button class="p-xs border border-outline-variant rounded hover:bg-surface-container-high transition-colors font-label-md text-label-md px-md">2</button>
-            <button class="p-xs border border-outline-variant rounded hover:bg-surface-container-high transition-colors font-label-md text-label-md px-md">3</button>
-            <button class="p-xs border border-outline-variant rounded hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined">chevron_right</span></button>
-          </div>
-        </div>
-      </div>
+      </section>
     </div>
   </main>
 
