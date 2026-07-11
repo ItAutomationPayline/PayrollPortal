@@ -1,0 +1,130 @@
+<div class="min-h-screen flex flex-col">
+  <app-header active="cycles"></app-header>
+  <app-sidebar active="cycles"></app-sidebar>
+
+  <main class="md:ml-[280px] pt-16 p-lg flex-grow">
+    <div class="max-w-6xl mx-auto space-y-lg">
+
+      <!-- Page header -->
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-md border-b border-outline-variant pb-md">
+        <div>
+          <br>
+          <p class="text-on-surface-variant font-label-md text-label-md">PAYLINE OPERATIONS</p>
+          <h2 class="font-display-lg text-display-lg text-on-background">Payroll Cycles</h2>
+        </div>
+        <div class="flex items-center gap-sm px-md py-xs bg-surface-container text-on-surface-variant rounded-lg border border-outline-variant">
+          <span class="material-symbols-outlined text-[18px]">event_available</span>
+          <span class="font-body-sm text-body-sm">Open a month to start a cycle</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-lg">
+
+        <!-- Open Month form -->
+        <section class="lg:col-span-5 bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden self-start">
+          <div class="p-lg border-b border-outline-variant bg-surface-bright">
+            <h3 class="font-headline-sm text-headline-sm">Open a Payroll Month</h3>
+          </div>
+
+          <div class="p-lg space-y-md">
+            <!-- Client -->
+            <div>
+              <label class="block font-label-md text-label-md text-on-surface-variant mb-xs uppercase tracking-wider">Client</label>
+              <div class="flex gap-sm">
+                <select [(ngModel)]="selectedClientId"
+                        class="flex-1 bg-surface-container border border-outline-variant rounded-lg p-sm font-body-md text-body-md text-on-surface">
+                  <option [ngValue]="null" disabled>Select a client…</option>
+                  <option *ngFor="let c of clients" [ngValue]="c.id">{{ c.name }}</option>
+                </select>
+                <button (click)="showNewClient = !showNewClient"
+                        class="px-md rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container-low transition-colors"
+                        title="Add a new client">
+                  <span class="material-symbols-outlined">{{ showNewClient ? 'close' : 'add' }}</span>
+                </button>
+              </div>
+
+              <div *ngIf="showNewClient" class="mt-sm flex gap-sm">
+                <input type="text" [(ngModel)]="newClientName" placeholder="New client name"
+                       class="flex-1 bg-surface-container border border-outline-variant rounded-lg p-sm font-body-md text-body-md text-on-surface" />
+                <button (click)="addClient()"
+                        class="px-md rounded-lg bg-secondary-container text-on-secondary-container font-label-md text-label-md hover:opacity-90 transition-opacity">
+                  Add
+                </button>
+              </div>
+            </div>
+
+            <!-- Period month -->
+            <div>
+              <label class="block font-label-md text-label-md text-on-surface-variant mb-xs uppercase tracking-wider">Payroll Month</label>
+              <input type="month" [(ngModel)]="periodMonth"
+                     class="w-full bg-surface-container border border-outline-variant rounded-lg p-sm font-body-md text-body-md text-on-surface" />
+            </div>
+
+            <!-- Off-cycle -->
+            <label class="flex items-center gap-sm cursor-pointer select-none">
+              <input type="checkbox" [(ngModel)]="offCycle" class="w-4 h-4 accent-primary" />
+              <span class="font-body-md text-body-md text-on-surface">Off-cycle run (within the same month)</span>
+            </label>
+
+            <!-- Messages -->
+            <div *ngIf="errorMessage" class="p-sm rounded-lg bg-error-container text-on-error-container font-body-sm text-body-sm flex items-center gap-sm">
+              <span class="material-symbols-outlined !text-[18px]">error</span>{{ errorMessage }}
+            </div>
+            <div *ngIf="successMessage" class="p-sm rounded-lg bg-tertiary-fixed text-on-tertiary-fixed-variant font-body-sm text-body-sm flex items-center gap-sm">
+              <span class="material-symbols-outlined !text-[18px]">check_circle</span>{{ successMessage }}
+            </div>
+
+            <button (click)="createCycle()" [disabled]="creating"
+                    class="w-full bg-primary text-on-primary py-sm rounded-lg font-label-md text-label-md hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-sm">
+              <span class="material-symbols-outlined text-[20px]">{{ creating ? 'hourglass_top' : 'event_available' }}</span>
+              {{ creating ? 'Opening…' : 'Open Month' }}
+            </button>
+          </div>
+        </section>
+
+        <!-- Existing cycles -->
+        <section class="lg:col-span-7 bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden">
+          <div class="p-lg border-b border-outline-variant flex justify-between items-center">
+            <h3 class="font-headline-sm text-headline-sm">Existing Cycles</h3>
+            <span class="text-on-surface-variant font-body-sm text-body-sm">{{ cycles.length }} cycle(s)</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-surface-container-low border-b border-outline-variant">
+                <tr>
+                  <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Client</th>
+                  <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Month</th>
+                  <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Status</th>
+                  <th class="p-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-right">Updated</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-outline-variant">
+                <tr *ngFor="let c of cycles" class="hover:bg-surface-container-low transition-colors">
+                  <td class="p-md font-body-md text-body-md font-bold text-on-surface">
+                    {{ c.clientName }}
+                    <span *ngIf="c.offCycle" class="ml-xs px-sm py-[1px] rounded-full bg-secondary-container text-on-secondary-container font-label-md text-[10px] uppercase">off-cycle</span>
+                  </td>
+                  <td class="p-md font-mono-data text-mono-data">{{ c.periodMonth }}</td>
+                  <td class="p-md">
+                    <span class="px-sm py-xs rounded-full font-label-md text-[10px] uppercase inline-flex items-center gap-xs" [ngClass]="statusClass(c.status)">
+                      {{ c.status }}
+                    </span>
+                  </td>
+                  <td class="p-md text-right font-body-sm text-body-sm text-on-surface-variant">{{ c.updatedAt }}</td>
+                </tr>
+                <tr *ngIf="!cycles.length && !loading">
+                  <td colspan="4" class="p-lg text-center font-body-sm text-body-sm text-on-surface-variant">No cycles yet. Open one on the left.</td>
+                </tr>
+                <tr *ngIf="loading">
+                  <td colspan="4" class="p-lg text-center font-body-sm text-body-sm text-on-surface-variant">Loading…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <app-footer [offsetSidebar]="true"></app-footer>
+</div>

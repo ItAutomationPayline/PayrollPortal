@@ -39,6 +39,15 @@ export class PayrollDataService {
 
   constructor(private http: HttpClient) {}
 
+  // ---- Clients ----
+  listClients(): Observable<{ id: number; name: string }[]> {
+    return this.http.get<{ id: number; name: string }[]>(`${this.base}/clients`);
+  }
+
+  createClient(name: string): Observable<{ id: number; name: string }> {
+    return this.http.post<{ id: number; name: string }>(`${this.base}/clients`, { name });
+  }
+
   // ---- Cycles ----
   listCycles(clientId?: number): Observable<CycleDto[]> {
     const q = clientId != null ? `?clientId=${clientId}` : '';

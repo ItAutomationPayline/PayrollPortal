@@ -16,6 +16,7 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { FileUploadComponent } from './components/file-upload/file-upload.component';
 import { StatusDownloadsComponent } from './components/status-downloads/status-downloads.component';
 import { UserManagementComponent } from './components/user-management/user-management.component';
+import { CycleManagementComponent } from './components/cycle-management/cycle-management.component';
 
 @NgModule({
   declarations: [
@@ -27,7 +28,8 @@ import { UserManagementComponent } from './components/user-management/user-manag
     DashboardComponent,
     FileUploadComponent,
     StatusDownloadsComponent,
-    UserManagementComponent
+    UserManagementComponent,
+    CycleManagementComponent
   ],
   imports: [BrowserModule, FormsModule, AppRoutingModule],
   providers: [
